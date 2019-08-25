@@ -9,40 +9,48 @@ import java.net.*;
 class SFTP_Client {
     
     public SFTP_Client(int port) throws Exception
-    { 
-        String sentence; 
+    {
+        String sentence;
+        String modifiedSentence;
+        String rawInput;
         String response;
         String command;
         boolean connectionOpen = true;
-
 
         //Initialise socket
         Socket clientSocket = new Socket("localhost", port);
 
         //Set up input and output streams
         DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-	    BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 
-        while(connectionOpen) {
+        while (connectionOpen) {
+
             //extract command from the user input and send to server
-            command = inFromUser.readLine().substring(0,4).toUpperCase();
-            System.out.println("the client: " + command);
-            outToServer.writeBytes(command + '\0');
+            System.out.print("TYPE COMMAND TO SEND TO SERVER: ");
+            rawInput = inFromUser.readLine();
+            command = rawInput.substring(0,4).toUpperCase();
 
-            //receive the response from the server
+            //Echo user input for testing
+            System.out.println("Client Says: " + rawInput + " | command: " + command);
+
+            //send user input data to the server for manipulation
+            outToServer.writeBytes(rawInput + '\n');
             response = inFromServer.readLine();
-            System.out.println("FROM SERVER: the response is..." + response);
+            System.out.println("FROM SERVER: " + response);
 
-            if (command.equals("DONE")) {
+            if (command.equals("DONE")){
                 connectionOpen = false;
-                System.out.println("the command was... " + command);
+                //sentence = inFromServer.readLine();
+                //System.out.println(sentence);
+                clientSocket.close();
             } else {
-                System.out.println("the else statement");
+                System.out.println("umm excuse you");
             }
-        }
 
-        System.out.println("client side says TATA!!");
+        }
+        System.out.println("\nclient side says tataaaa");
         clientSocket.close();
     }
 } 

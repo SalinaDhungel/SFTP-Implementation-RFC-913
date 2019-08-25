@@ -36,25 +36,25 @@ class SFTP_Server {
 
 
 		while(connectionOpen) {
-			System.out.println("connection is open!!!!");
 
-			System.out.println("waiting for server to read the client's message.........");
-
+			//extract the command from raw client input
 			clientInput = inFromClient.readLine();
-			System.out.println("client input that server has received displayed below vvv");
-			System.out.println(clientInput);
-			if (clientInput.equals("DONE\0")){
-				outToClient.writeBytes("+\0"); //the response
-				System.out.println("cancelling...");
-				connectionOpen = false;
-			} else {
-				outToClient.writeBytes(clientInput.toUpperCase());
-			}
-        }
-		System.out.println("GOODBYE from server side");
-		welcomeSocket.close();
+			command = clientInput.toUpperCase().substring(0,4) + '\n';
+			outToClient.writeBytes(command);
 
-    }
+			if(command.equals("DONE\n")){
+				connectionOpen = false;
+				//outToClient.writeBytes("server switching off...");
+
+			} else {
+				System.out.println("shouldnt be here...");
+
+			}
+
+		}
+		System.out.println("goodbye from server side");
+		welcomeSocket.close();
+	}
 
 } 
 
