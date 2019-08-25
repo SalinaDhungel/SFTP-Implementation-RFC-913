@@ -56,7 +56,7 @@ class SFTP_Client {
             }
 
         }
-        System.out.println("client side says tataaaa");
+        //.out.println("client side says tataaaa");
         clientSocket.close();
     }
 } 

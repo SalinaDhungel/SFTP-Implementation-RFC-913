@@ -48,13 +48,13 @@ class SFTP_Server {
 
 			if(command.equals("DONE\n")){
 				connectionOpen = false;
-				outToClient.println(command);
+				outToClient.println("+UoA-CS725 closing connection");
 			} else {
 				System.out.println("shouldnt be here...");
 			}
 
 		}
-		System.out.println("goodbye from server side");
+		//System.out.println("goodbye from server side");
 		welcomeSocket.close();
 	}
 
