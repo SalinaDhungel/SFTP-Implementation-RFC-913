@@ -7,6 +7,7 @@
 import java.io.*; 
 import java.net.*; 
 class SFTP_Client {
+    private OutputStream outputStream;
     
     public SFTP_Client(int port) throws Exception
     {
@@ -19,11 +20,16 @@ class SFTP_Client {
 
         //Initialise socket
         Socket clientSocket = new Socket("localhost", port);
+        clientSocket.setReuseAddress(true);
+
 
         //Set up input and output streams
-        DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+        //DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+        PrintWriter outToServer = new PrintWriter(clientSocket.getOutputStream(), true);
+        outputStream = clientSocket.getOutputStream();
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+
 
         while (connectionOpen) {
 
@@ -36,21 +42,21 @@ class SFTP_Client {
             System.out.println("Client Says: " + rawInput + " | command: " + command);
 
             //send user input data to the server for manipulation
-            outToServer.writeBytes(rawInput + '\n');
-            response = inFromServer.readLine();
-            System.out.println("FROM SERVER: " + response);
+            outToServer.println(rawInput + '\n');
+            //response = inFromServer.readLine();
+            //System.out.println("FROM SERVER: " + response);
 
             if (command.equals("DONE")){
                 connectionOpen = false;
-                //sentence = inFromServer.readLine();
-                //System.out.println(sentence);
+                sentence = inFromServer.readLine();
+                System.out.println(sentence);
                 clientSocket.close();
             } else {
                 System.out.println("umm excuse you");
             }
 
         }
-        System.out.println("\nclient side says tataaaa");
+        System.out.println("client side says tataaaa");
         clientSocket.close();
     }
 } 

@@ -9,6 +9,7 @@ import java.net.*;
 
 class SFTP_Server {
 	private static boolean serverConnected = true;
+	private OutputStream outputStream;
     
     public SFTP_Server(int port) throws Exception
     {
@@ -22,10 +23,13 @@ class SFTP_Server {
 		//Open server socket for connection
 		ServerSocket welcomeSocket = new ServerSocket(port);
 		Socket connectionSocket = welcomeSocket.accept();
+		welcomeSocket.setReuseAddress(true);
 
 		//Set up input and output streams
 		BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-		DataOutputStream  outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+		//DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+		PrintWriter outToClient = new PrintWriter(connectionSocket.getOutputStream(), true);
+		outputStream = connectionSocket.getOutputStream();
 
 		//Initial check for server connection
 		if (serverConnected){
@@ -40,15 +44,13 @@ class SFTP_Server {
 			//extract the command from raw client input
 			clientInput = inFromClient.readLine();
 			command = clientInput.toUpperCase().substring(0,4) + '\n';
-			outToClient.writeBytes(command);
+			//outToClient.println(command);
 
 			if(command.equals("DONE\n")){
 				connectionOpen = false;
-				//outToClient.writeBytes("server switching off...");
-
+				outToClient.println(command);
 			} else {
 				System.out.println("shouldnt be here...");
-
 			}
 
 		}
