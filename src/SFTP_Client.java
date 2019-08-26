@@ -59,9 +59,11 @@ class SFTP_Client {
             }else  {
                 //System.out.println("umm excuse you");
             }
-            response = inFromServer.readLine();
-            System.out.println("the RESPONSE::::: " + response);
 
+            while (!inFromServer.ready()) {
+                response = inFromServer.readLine();
+                System.out.println("the RESPONSE::::: " + response);
+            }
 
         }
         //.out.println("client side says tataaaa");
