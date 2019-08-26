@@ -1,7 +1,7 @@
 /**
- * Code is taken from Computer Networking: A Top-Down Approach Featuring 
- * the Internet, second edition, copyright 1996-2002 J.F Kurose and K.W. Ross, 
- * All Rights Reserved.
+ * SFTP Client Implementation : COMPSYS725 - Assignment 1
+ * Author: Salina Dhungel | sdhu434
+ * University of Auckland 2019
  **/
 
 import java.io.*; 
@@ -24,7 +24,6 @@ class SFTP_Client {
 
 
         //Set up input and output streams
-        //DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
         PrintWriter outToServer = new PrintWriter(clientSocket.getOutputStream(), true);
         outputStream = clientSocket.getOutputStream();
         BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -39,7 +38,7 @@ class SFTP_Client {
             command = rawInput.substring(0,4).toUpperCase();
 
             //Echo user input for testing
-            System.out.println("Client Says: " + rawInput + " | command: " + command);
+            //System.out.println("Client Says: " + rawInput + " | command: " + command);
 
             //send user input data to the server for manipulation
             outToServer.println(rawInput+ "\0");
@@ -50,18 +49,18 @@ class SFTP_Client {
                 //System.out.println(sentence);
                 clientSocket.close();
             } else if (command.equals("USER")){
-                System.out.println("testing!!!!!!");
+                //System.out.println("testing!!!!!!");
 
             } else if (command.equals("ACCT")) {
-                System.out.println("acct command!");
+               // System.out.println("acct command!");
 
             } else if (command.equals("PASS")) {
-                System.out.println("pass command!");
+                //System.out.println("pass command!");
             }else  {
-                System.out.println("umm excuse you");
+                //System.out.println("umm excuse you");
             }
             response = inFromServer.readLine();
-            System.out.println("the RESPONSE!!!!!!!!!!!!!::::: " + response);
+            System.out.println("the RESPONSE::::: " + response);
 
 
         }

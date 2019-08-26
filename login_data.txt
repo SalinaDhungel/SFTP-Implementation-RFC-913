@@ -1,5 +1,6 @@
-<userID>[account]<password>
+<userid>[account]<password>
 admin[accounty]password
-test[123]wordpass
+test[blah]
+test1[123]wordpass
 bro[blah]admin
 dude[testing]christmaslights

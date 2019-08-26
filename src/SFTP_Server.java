@@ -1,7 +1,7 @@
 /**
- * Code is taken from Computer Networking: A Top-Down Approach Featuring 
- * the Internet, second edition, copyright 1996-2002 J.F Kurose and K.W. Ross, 
- * All Rights Reserved.
+ * SFTP Server Implementation : COMPSYS725 - Assignment 1
+ * Author: Salina Dhungel | sdhu434
+ * University of Auckland 2019
  **/
 
 import java.io.*; 
@@ -16,13 +16,10 @@ class SFTP_Server {
 
 	public SFTP_Server(int port) throws Exception
     {
-		String clientSentence;
-		String capitalizedSentence;
 		String clientInput;
 		String command;
 		String args;
 		boolean connectionOpen = true;
-
 
 		//Open server socket for connection
 		ServerSocket welcomeSocket = new ServerSocket(port);
@@ -31,7 +28,6 @@ class SFTP_Server {
 
 		//Set up input and output streams
 		BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-		//DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 		PrintWriter outToClient = new PrintWriter(connectionSocket.getOutputStream(), true);
 		outputStream = connectionSocket.getOutputStream();
 
@@ -48,7 +44,7 @@ class SFTP_Server {
 			//extract the command from raw client input
 			clientInput = inFromClient.readLine();
 			command = clientInput.substring(0,4);
-			System.out.println("\ncommand is:::::::: " + command);
+			//System.out.println("\ncommand is:::::::: " + command);
 			args = clientInput.substring(5, clientInput.length());
 
 			if(command.equalsIgnoreCase("DONE\n")){
@@ -59,14 +55,14 @@ class SFTP_Server {
 				//System.out.println("args are:::: " + args);
 				response = USERCommand(args);
 			}  else if (command.equalsIgnoreCase("ACCT")){
-				System.out.println("ACCt args are:::: " + args);
+				//System.out.println("ACCt args are:::: " + args);
 				response = ACCTCommand(args);
 
 			}else if (command.equalsIgnoreCase("PASS")){
 				response = PASSCommand(args);
 
 			} else {
-				System.out.println("not done or user");
+				//System.out.println("not done or user");
 			}
 
 			//SEND RESPONSE BACK TO SERVER
@@ -81,9 +77,9 @@ class SFTP_Server {
 		int status;
 		status = loginHandler.verifyUserID(userID_string);
 		if (status == 2){
-			response = "+User-id valid, send account and password";
-		} else if (status == 1) {
 			response = "!"+ userID_string+ " logged in";
+		} else if (status == 1) {
+			response = "+User-id valid, send account and password";
 		} else if (status == 0){
 			response = "-Invalid user-id, try again";
 		}
@@ -95,9 +91,9 @@ class SFTP_Server {
 		int status;
 		status = loginHandler.verifyAcct(acct_string);
 		if (status == 2){
-			response = "+Account valid, send password\n";
-		} else if (status == 1) {
 			response = "!"+ acct_string+ " logged in";
+		} else if (status == 1) {
+			response = "+Account valid, send password\n";
 		} else if (status == 0){
 			response = "-Invalid Account, try again";
 		}
@@ -107,8 +103,9 @@ class SFTP_Server {
 	/*Handle PASS command*/
 	public String PASSCommand(String pass_string) throws Exception {
 		int status;
-		LoginHandler loginHandler = new LoginHandler();
-		status = loginHandler.verifyUserID(pass_string);
+		status = loginHandler.verifyPass(pass_string);
+
+
 		if (status == 2){
 			response = "!Logged in";
 		} else if (status == 1) {

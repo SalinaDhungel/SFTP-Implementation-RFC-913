@@ -8,14 +8,15 @@ public class LoginHandler {
     private String currentAccount;
     private String currentPassword;
     private boolean userVerified = false;
+    boolean passwordVerified = false;
+    boolean accountVerified = false;
     private int lineNumber = 0;
 
 
     public LoginHandler() throws Exception {
 
-        int userVerified = 0;
-        int passwordVerified = 0;
-        int accountVerified = 0;
+       // boolean userVerified = false;
+
     }
 
     public int verifyUserID(String userID) throws IOException {
@@ -33,13 +34,21 @@ public class LoginHandler {
                 startOfPassword = lineFromFile.indexOf("]");
 
                 currentUser = lineFromFile.substring(0, endOfUserID);
-                System.out.println("--> currentuser: " + currentUser + "--> userID: " + userID + "line number: " + lineNumber);
+              //  System.out.println("current user = " + currentUser);
 
-                if (userID.equals(currentUser + "\0")) {
-                    return 2; //valid user
-                } else {
-                    System.out.println("hlelo");
-                    return 0; //invalid user
+                if (userID.equals(currentUser+"\0")) {
+                    String linkedAccount = lineFromFile.substring(endOfUserID + 1, startOfPassword);
+                    String linkedPassword = lineFromFile.substring(startOfPassword + 1);
+
+                    if (userID.equals(currentUser + "\0") && linkedAccount.isEmpty() && linkedPassword.isEmpty()) {
+                        userVerified = true;
+                        return 2; //valid user
+                    } else if (userID.equals(currentUser + "\0") && (!linkedAccount.isEmpty() || !linkedPassword.isEmpty())) {
+                        userVerified = true;
+                        return 1; //user id valid, send account and password
+                    } else if (!userID.equals(currentUser + "\0")) {
+                        return 0; //invalid user
+                    }
                 }
                 //currentAccount = lineFromFile.substring(endOfUserID+1, startOfPassword);
                 //currentPassword = lineFromFile.substring(startOfPassword+1);
@@ -47,31 +56,40 @@ public class LoginHandler {
         } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("(ArrayIndexOutOfBoundsException occured when trying to access userList");
         }
-        return 2;
+        return -1;
     }
 
     public int verifyAcct(String acct_string) throws IOException {
         BufferedReader fileContents = new BufferedReader(new FileReader("login_data.txt"));
         StringBuilder fileText = new StringBuilder();
         String lineFromFile = fileContents.readLine();
-        String currentAccount = null;
-        int endOfUserID = lineFromFile.indexOf("[");
-        int startOfPassword = lineFromFile.indexOf("]");
+        int endOfUserID;
+        int startOfPassword;
         int count = 0;
+
         try {
             while ((lineFromFile = fileContents.readLine()) != null) {
                 count++;
+                endOfUserID = lineFromFile.indexOf("[");
+                startOfPassword = lineFromFile.indexOf("]");
+                String currentAccount = lineFromFile.substring(endOfUserID + 1, startOfPassword);
+                String linkedPassword = lineFromFile.substring(startOfPassword+1);
+
                 if (lineNumber == count) {
                     currentAccount = lineFromFile.substring(endOfUserID + 1, startOfPassword);
-                    System.out.println("current account = " + currentAccount);
-                    if (currentAccount.equals(acct_string + "\0")) {
+                    linkedPassword = lineFromFile.substring(startOfPassword+1);
+                    System.out.println("current lnked pass = " + linkedPassword);
+
+                    if (acct_string.equals(currentAccount + "\0") && userVerified && linkedPassword.isEmpty()) {
+                        accountVerified = true;
                         return 2; //valid acct
-                    } else {
-                        System.out.println("account wrong");
-                        return 0; //invalid acct
+                    } else if ((acct_string.equals(currentAccount + "\0") && userVerified && (!passwordVerified && !linkedPassword.isEmpty()))){
+                        accountVerified = true;
+                        return 1; //acct valid, send password
+                    } else if (!userVerified || (!acct_string.equals(currentAccount + "\0"))){
+                        return 0; //acct invalid
                     }
                 }
-                //currentPassword = lineFromFile.substring(startOfPassword+1);
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("(ArrayIndexOutOfBoundsException occured when trying to access userList");
@@ -83,28 +101,34 @@ public class LoginHandler {
         BufferedReader fileContents = new BufferedReader(new FileReader("login_data.txt"));
         StringBuilder fileText = new StringBuilder();
         String lineFromFile = fileContents.readLine();
-        int endOfUserID = lineFromFile.indexOf("[");
-        int startOfPassword = lineFromFile.indexOf("]");
+        int endOfUserID ;
+        int startOfPassword;
         int count = 0;
+
             try {
                 while ((lineFromFile = fileContents.readLine()) != null) {
                     count++;
+                    endOfUserID = lineFromFile.indexOf("[");
+                    startOfPassword = lineFromFile.indexOf("]");
+
                     if (lineNumber == count) {
                         currentPassword = lineFromFile.substring(startOfPassword+1);
-                        System.out.println("current password = " + currentAccount);
-                        if (currentPassword.equals(pass_string + "\0") && (currentUser != null || currentAccount != null)) {
-                            return 2; //valid acct
-                        } else if (currentPassword.equals(pass_string + "\0") && (currentUser == null || currentAccount == null)) {
-                            System.out.println("account wrong");
-                            return 1; //valid account but need to give acct first
-                        } else {
+                        String linkedAccount = lineFromFile.substring(endOfUserID + 1, startOfPassword);
+                        if (pass_string.equals(currentPassword+ "\0") && userVerified) {
+                            if (accountVerified || linkedAccount.isEmpty()) {
+                                passwordVerified = true;
+                                return 2; //valid acct
+                            } else {
+                                return 1; //valid account but need to give acct first
+                            }
+                        } else if (!pass_string.equals(currentPassword+ "\0") || !userVerified) {
                             return 0 ; //invalid
                         }
                     }
                 }
             } catch (ArrayIndexOutOfBoundsException e) {
-                System.out.println("(ArrayIndexOutOfBoundsException occured when trying to access userList");
+                System.out.println("(ArrayIndexOutOfBoundsException occurred when trying to access userList");
             }
-        return 1;
+        return 1; //request user to send user or acct before password
     }
 }
