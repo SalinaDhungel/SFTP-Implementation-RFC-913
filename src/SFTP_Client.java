@@ -42,18 +42,27 @@ class SFTP_Client {
             System.out.println("Client Says: " + rawInput + " | command: " + command);
 
             //send user input data to the server for manipulation
-            outToServer.println(rawInput + '\n');
-            //response = inFromServer.readLine();
-            //System.out.println("FROM SERVER: " + response);
+            outToServer.println(rawInput+ "\0");
 
-            if (command.equals("DONE")){
+            if (command.equals("DONE\n")){
                 connectionOpen = false;
-                sentence = inFromServer.readLine();
-                System.out.println(sentence);
+                //sentence = inFromServer.readLine();
+                //System.out.println(sentence);
                 clientSocket.close();
-            } else {
+            } else if (command.equals("USER")){
+                System.out.println("testing!!!!!!");
+
+            } else if (command.equals("ACCT")) {
+                System.out.println("acct command!");
+
+            } else if (command.equals("PASS")) {
+                System.out.println("pass command!");
+            }else  {
                 System.out.println("umm excuse you");
             }
+            response = inFromServer.readLine();
+            System.out.println("the RESPONSE!!!!!!!!!!!!!::::: " + response);
+
 
         }
         //.out.println("client side says tataaaa");
