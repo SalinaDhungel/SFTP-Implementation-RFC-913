@@ -10,8 +10,9 @@ import java.net.*;
 class SFTP_Server {
 	private static boolean serverConnected = true;
 	private OutputStream outputStream;
-	private String response;
+	private String response = null;
 	private LoginHandler loginHandler = new LoginHandler();
+	private boolean loggedIn = false;
 	private int fileType = 1; // 0 = ASCII, 1 = Binary, 2 = Continuous
 
 
@@ -62,15 +63,19 @@ class SFTP_Server {
 				response = PASSCommand(args);
 			} else if (command.equalsIgnoreCase("TYPE")) {
 				response = TYPECommand(args);
-
-			} else {
+			} else if (command.equalsIgnoreCase("LIST")) {
+				response = LISTCommand(args);
+			}else {
+				response = "-Invalid Query";
 				//System.out.println("not done or user");
 			}
 
 			//SEND RESPONSE BACK TO SERVER
-		//	System.out.println("response from server:: "+ response + "\0");
-			System.out.println(response);
-
+			System.out.println("response from server:: "+ response + "\0");
+			if (!response.isEmpty()) {
+				outToClient.println(response);
+			}
+			response = null;
 			//System.out.println("hello!");
 
 		}
@@ -83,6 +88,7 @@ class SFTP_Server {
 		int status;
 		status = loginHandler.verifyUserID(userID_string);
 		if (status == 2){
+			loggedIn = true;
 			response = "!"+ userID_string+ " logged in";
 		} else if (status == 1) {
 			response = "+User-id valid, send account and password";
@@ -97,9 +103,10 @@ class SFTP_Server {
 		int status;
 		status = loginHandler.verifyAcct(acct_string);
 		if (status == 2){
+			loggedIn = true;
 			response = "!"+ acct_string+ " logged in";
 		} else if (status == 1) {
-			response = "+Account valid, send password\n";
+			response = "+Account valid, send password";
 		} else if (status == 0){
 			response = "-Invalid Account, try again";
 		}
@@ -111,6 +118,7 @@ class SFTP_Server {
 		int status;
 		status = loginHandler.verifyPass(pass_string);
 		if (status == 2) {
+			loggedIn = true;
 			response = "!Logged in";
 		} else if (status == 1) {
 			response = "+Send account";
@@ -138,5 +146,15 @@ class SFTP_Server {
 		}
 		return  response;
 	}
-} 
+
+	public String LISTCommand(String list_para){
+		//check if the user is logged in first!
+		if (loggedIn){
+			System.out.println(list_para);
+		} else {
+			response = "-Must be logged in to use this command";
+		}
+		return response;
+	}
+}
 

@@ -43,6 +43,13 @@ class SFTP_Client {
             //send user input data to the server for manipulation
             outToServer.println(rawInput+ "\0");
 
+            response = inFromServer.readLine();
+//            System.out.println("the first response ferom server::: " + response);
+//            while (inFromServer.ready()){
+//                response = inFromServer.readLine();
+//            }
+            System.out.println("the RESPONSE::::: " + response);
+
             if (command.equals("DONE\n")){
                 connectionOpen = false;
                 //sentence = inFromServer.readLine();
@@ -59,11 +66,6 @@ class SFTP_Client {
             }else  {
                 //System.out.println("umm excuse you");
             }
-
-                response = inFromServer.readLine();
-                System.out.println("the RESPONSE::::: " + response);
-
-
         }
         inFromServer.close();
 
