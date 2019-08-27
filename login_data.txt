@@ -1,6 +1,6 @@
 <userid>[account]<password>
-admin[accounty]password
-test[blah]
-test1[123]wordpass
-bro[blah]admin
-dude[testing]christmaslights
+admin[001]password
+test[002]wordpass
+bob[003]UoA
+bill[004]admin
+barb[005]CSE

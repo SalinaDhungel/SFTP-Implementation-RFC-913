@@ -52,17 +52,14 @@ class SFTP_Server {
 			//extract the command from raw client input
 			clientInput = inFromClient.readLine();
 			command = clientInput.substring(0,4);
-			//System.out.println("\ncommand is:::::::: " + command);
 			args = clientInput.substring(5, clientInput.length());
 
 			if(command.equalsIgnoreCase("DONE")){
 				connectionOpen = false;
-				response = ("+UoA-CS725 closing connection");
+				response = "+UoA-CS725 closing connection";
 			} else if (command.equalsIgnoreCase("USER")){
-				//System.out.println("args are:::: " + args);
 				response = USERCommand(args);
 			}  else if (command.equalsIgnoreCase("ACCT")){
-				//System.out.println("ACCt args are:::: " + args);
 				response = ACCTCommand(args);
 			}else if (command.equalsIgnoreCase("PASS")){
 				response = PASSCommand(args);
@@ -80,19 +77,14 @@ class SFTP_Server {
 				response = TOBECommand(args);
 			}else {
 				response = "-Invalid Query";
-				//System.out.println("not done or user");
 			}
 
-			//SEND RESPONSE BACK TO SERVER
-			System.out.println("response from server:: "+ response + "\0");
+			//Send response back to server
 			if (!response.isEmpty()) {
 				outToClient.println(response);
 			}
 			response = null;
-			//System.out.println("hello!");
-
 		}
-		//System.out.println("goodbye from server side");
 		welcomeSocket.close();
 	}
 
@@ -116,7 +108,7 @@ class SFTP_Server {
 	/*Handle ACCT command*/
 	public String ACCTCommand(String acct_string) throws Exception {
 		int status;
-
+//		Check status of user
 		status = loginHandler.verifyAcct(acct_string);
 		if (status == 2){
 			loginStatus = 1;
@@ -127,20 +119,20 @@ class SFTP_Server {
 		} else if (status == 0){
 			response = "-Invalid Account, try again";
 		}
+		//If ACCT cmd is called from CDIR
 		if (loginStatus == 1){
 			if (inputDir != null){
-				System.out.println("Inside here!!");
 				response = CDIRCommand(inputDir);
 				inputDir = null;
 			}
 		}
-
 		return response;
 	}
 
 	/*Handle PASS command*/
 	public String PASSCommand(String pass_string) throws Exception {
 		int status;
+//		Check status of user
 		status = loginHandler.verifyPass(pass_string);
 		if (status == 2) {
 			loginStatus = 1;
@@ -156,22 +148,19 @@ class SFTP_Server {
 			String response = CDIRCommand(inputDir);
 			inputDir = null;
 		}
-
+		//If PASS cmd is called from CDIR
 		if (loginStatus == 1){
 			if (inputDir != null){
-				System.out.println("Inside here!!");
 				response = CDIRCommand(inputDir);
 				inputDir = null;
 			}
 		}
 		return response;
 	}
-
+	/*Handle TYPE command*/
 	public String TYPECommand(String type_string) throws Exception {
-		System.out.println(type_string);
 		if (type_string.equalsIgnoreCase("A\0")){
 			fileType = 0;
-
 			response = "+Using Ascii mode";
 		} else if (type_string.equalsIgnoreCase("B\0")){
 			response = "+Using Binary mode";
@@ -185,7 +174,7 @@ class SFTP_Server {
 		}
 		return  response;
 	}
-
+	/*Handle LIST command*/
 	public String LISTCommand(String list_args) {
 		String dirPath;
 		String listType = "";
@@ -198,38 +187,33 @@ class SFTP_Server {
 
 		try {
 			if (list_args.length() > 2) { //if there is a directory provided
-				System.out.println("oh ok:: "+ currentDirectory);
 				listType = list_args.substring(0, 1);
 				dirPath = list_args.substring(2);
 
 			} else {
-				System.out.println("bro:: "+ currentDirectory);
 				dirPath = currentDirectory;
 				listType = list_args;
 			}
 
 			//get all the contents of the directory
 			File[] files = new File(dirPath).listFiles();
-
+			//loop through all items in directory
 			for (File file : files) {
 				listOut = listOut + "\r\n" + file.getName();
-				//System.out.println(listOut);
 				if (listType.equalsIgnoreCase("F\0")) {
 					response = listOut;
 				} else if (listType.equalsIgnoreCase("V\0")) {
-					//return getList(dirPath, true);
 					if (file.isFile()) {
 						listOut = listOut + " : File";
 					} else {
 						listOut = listOut + " : Folder";
 					}
-					listOut = listOut + " -Size: " + file.length() + "B  -Last Modified: " + new Date(file.lastModified()); // Append size and date
+					listOut = listOut + " -Size: " + file.length() + "B  -Last Modified: " + new Date(file.lastModified());
 					listOut = listOut + "\r\n";
 					response =listOut;
 				}
-
 				else {
-					response = "-You must be logged in to use this command"; //TODO: change this condition!!
+					response = "-You must be logged in to use this command";
 				}
 			}
 		} catch (Exception e) {
@@ -237,7 +221,7 @@ class SFTP_Server {
 		}
 		return response;
 	}
-
+	/*Handle CDIR command*/
 	public String CDIRCommand(String dir){
 		inputDir = dir;
 		if (loginStatus == 0){
@@ -248,10 +232,9 @@ class SFTP_Server {
 		} else {
 			response = "+directory ok, send account/password";
 		}
-
 		return response;
 	}
-
+	/*Handle KILL command*/
 	public String KILLCommand(String filespec){
 		if (loginStatus == 1) {
 			File dir = new File(currentDirectory + "/" + filespec);
@@ -271,10 +254,11 @@ class SFTP_Server {
 	return response;
 	}
 
+	/*Handle NAME command*/
 	public String NAMECommand(String oldfilespec){
 		if (loginStatus == 1){
 			File dir = new File(currentDirectory + "/" + oldfilespec);
-			if (dir.exists()) { //
+			if (dir.exists()) {
 				newFileName = oldfilespec;
 				response = "+File exists";
 
@@ -287,7 +271,7 @@ class SFTP_Server {
 		}
 		return response;
 	}
-
+	/*Handle TOBE command*/
 	public String TOBECommand(String newFileSpec) {
 		if (newFileName.isEmpty()){
 			response = "-File was not renamed because NAME cmd not called";
