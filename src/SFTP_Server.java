@@ -19,6 +19,7 @@ class SFTP_Server {
 	String currentDirectory = System.getProperty("user.dir");
 	private int loginStatus = 0; // 0 = not logged in, 1 = logged in, 2 = userVerified, 3 = accountVerified, 4 = passwordVerified
 	private String inputDir = null;
+	private String newFileName = null;
 
 	public SFTP_Server(int port) throws Exception
     {
@@ -75,6 +76,8 @@ class SFTP_Server {
 				response = KILLCommand(args);
 			}else if (command.equalsIgnoreCase("NAME")) {
 				response = NAMECommand(args);
+			}else if (command.equalsIgnoreCase("TOBE")) {
+				response = TOBECommand(args);
 			}else {
 				response = "-Invalid Query";
 				//System.out.println("not done or user");
@@ -250,27 +253,53 @@ class SFTP_Server {
 	}
 
 	public String KILLCommand(String filespec){
-		if (loginStatus == 1){
-			File dir = new File(currentDirectory + "/" + filespec); 
-				if (dir.exists()){
-					if (dir.delete()){
-						response = "+" +  filespec + "deleted";
-					} else {
-						response = "-Not deleted, error unknown";
-					}
+		if (loginStatus == 1) {
+			File dir = new File(currentDirectory + "/" + filespec);
+			response = String.format("+" + filespec + "s deleted");
+			if (dir.exists()) {
+				if (dir.delete()) {
+					response = "+" + filespec + "deleted";
 				} else {
-					response = "-Not deleted because file does not exist";
+					response = "-Not deleted, error unknown";
 				}
+			} else {
+				response = "-Not deleted because file does not exist";
+			}
 		} else {
-			response = "-Not deleted because user must be logged in to proceed";
+			response = "-Not deleted because the user must be logged in";
 		}
 	return response;
 	}
 
-	public String NAMECommand(String old-file-spec){
+	public String NAMECommand(String oldfilespec){
+		if (loginStatus == 1){
+			File dir = new File(currentDirectory + "/" + oldfilespec);
+			if (dir.exists()) { //
+				newFileName = oldfilespec;
+				response = "+File exists";
+
+			} else {
+				newFileName = null;
+				response = "-Can't find " + oldfilespec;
+			}
+		} else {
+			response = "-User must be logged in to use this command";
+		}
 		return response;
 	}
 
-
+	public String TOBECommand(String newFileSpec) {
+		if (newFileName.isEmpty()){
+			response = "-File was not renamed because NAME cmd not called";
+		}
+		File dir = new File(currentDirectory + "/" + newFileName); // Local files only. Absolute paths don't work
+		File newDir = new File(currentDirectory + "/" + newFileSpec);
+		if (dir.renameTo(newDir)) {
+			response = "+" + newFileName + " renamed to " + newFileSpec;
+		} else {
+			response = "-File wasn't renamed, unknown error occurred";
+		}
+		return response;
+	}
 }
 
