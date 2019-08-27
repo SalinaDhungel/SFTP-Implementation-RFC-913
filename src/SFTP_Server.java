@@ -4,8 +4,10 @@
  * University of Auckland 2019
  **/
 
-import java.io.*; 
-import java.net.*; 
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Date;
 
 class SFTP_Server {
 	private static boolean serverConnected = true;
@@ -14,7 +16,9 @@ class SFTP_Server {
 	private LoginHandler loginHandler = new LoginHandler();
 	private boolean loggedIn = false;
 	private int fileType = 1; // 0 = ASCII, 1 = Binary, 2 = Continuous
-
+	String currentDirectory = System.getProperty("user.dir");
+	private int loginStatus = 0; // 0 = not logged in, 1 = logged in, 2 = userVerified, 3 = accountVerified, 4 = passwordVerified
+	private String inputDir = null;
 
 	public SFTP_Server(int port) throws Exception
     {
@@ -65,6 +69,8 @@ class SFTP_Server {
 				response = TYPECommand(args);
 			} else if (command.equalsIgnoreCase("LIST")) {
 				response = LISTCommand(args);
+			}else if (command.equalsIgnoreCase("CDIR")) {
+				response = CDIRCommand(args);
 			}else {
 				response = "-Invalid Query";
 				//System.out.println("not done or user");
@@ -88,11 +94,13 @@ class SFTP_Server {
 		int status;
 		status = loginHandler.verifyUserID(userID_string);
 		if (status == 2){
-			loggedIn = true;
+			loginStatus = 1;
 			response = "!"+ userID_string+ " logged in";
 		} else if (status == 1) {
+			loginStatus = 2;
 			response = "+User-id valid, send account and password";
 		} else if (status == 0){
+			loginStatus = 0;
 			response = "-Invalid user-id, try again";
 		}
 		return response;
@@ -101,15 +109,25 @@ class SFTP_Server {
 	/*Handle ACCT command*/
 	public String ACCTCommand(String acct_string) throws Exception {
 		int status;
+
 		status = loginHandler.verifyAcct(acct_string);
 		if (status == 2){
-			loggedIn = true;
+			loginStatus = 1;
 			response = "!"+ acct_string+ " logged in";
 		} else if (status == 1) {
+			loginStatus = 3;
 			response = "+Account valid, send password";
 		} else if (status == 0){
 			response = "-Invalid Account, try again";
 		}
+		if (loginStatus == 1){
+			if (inputDir != null){
+				System.out.println("Inside here!!");
+				response = CDIRCommand(inputDir);
+				inputDir = null;
+			}
+		}
+
 		return response;
 	}
 
@@ -118,12 +136,26 @@ class SFTP_Server {
 		int status;
 		status = loginHandler.verifyPass(pass_string);
 		if (status == 2) {
-			loggedIn = true;
+			loginStatus = 1;
 			response = "!Logged in";
 		} else if (status == 1) {
+			loginStatus = 4;
 			response = "+Send account";
 		} else if (status == 0){
+			loginStatus = 0;
 			response = "-Wrong password, try again";
+		}
+		if (inputDir != null){
+			String response = CDIRCommand(inputDir);
+			inputDir = null;
+		}
+
+		if (loginStatus == 1){
+			if (inputDir != null){
+				System.out.println("Inside here!!");
+				response = CDIRCommand(inputDir);
+				inputDir = null;
+			}
 		}
 		return response;
 	}
@@ -147,14 +179,75 @@ class SFTP_Server {
 		return  response;
 	}
 
-	public String LISTCommand(String list_para){
-		//check if the user is logged in first!
-		if (loggedIn){
-			System.out.println(list_para);
-		} else {
-			response = "-Must be logged in to use this command";
+	public String LISTCommand(String list_args) {
+		String dirPath;
+		String listType = "";
+		String listOut = "";
+
+		//if not logged in
+		if (loginStatus == 0){
+			return "-Please log in to use this command";
+		}
+
+		try {
+			if (list_args.length() > 2) { //if there is a directory provided
+				System.out.println("oh ok:: "+ currentDirectory);
+				listType = list_args.substring(0, 1);
+				dirPath = list_args.substring(2);
+
+			} else {
+				System.out.println("bro:: "+ currentDirectory);
+				dirPath = currentDirectory;
+				listType = list_args;
+			}
+
+			//get all the contents of the directory
+			File[] files = new File(dirPath).listFiles();
+
+			for (File file : files) {
+				listOut = listOut + "\r\n" + file.getName();
+				//System.out.println(listOut);
+				if (listType.equalsIgnoreCase("F\0")) {
+					response = listOut;
+				} else if (listType.equalsIgnoreCase("V\0")) {
+					//return getList(dirPath, true);
+					if (file.isFile()) {
+						listOut = listOut + " : File";
+					} else {
+						listOut = listOut + " : Folder";
+					}
+					listOut = listOut + " -Size: " + file.length() + "B  -Last Modified: " + new Date(file.lastModified()); // Append size and date
+					listOut = listOut + "\r\n";
+					response =listOut;
+				}
+
+				else {
+					response = "-You must be logged in to use this command"; //TODO: change this condition!!
+				}
+			}
+		} catch (Exception e) {
+			response =  "-Format or directory not valid";
 		}
 		return response;
 	}
+
+	public String CDIRCommand(String dir){
+		inputDir = dir;
+		if (loginStatus == 0){
+			response = "-Can't connect to directory because: User details must be provided";
+		} else if (loginStatus == 1){
+			currentDirectory = dir;
+			response = "+!Changed working dir to " + dir;
+		} else {
+			response = "+directory ok, send account/password";
+		}
+
+		return response;
+	}
+
+
+
+
+
 }
 
