@@ -24,7 +24,6 @@ public class SFTP_Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         System.out.println("\n SFTP Protocol Ended");
     }
 
