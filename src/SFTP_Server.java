@@ -71,6 +71,10 @@ class SFTP_Server {
 				response = LISTCommand(args);
 			}else if (command.equalsIgnoreCase("CDIR")) {
 				response = CDIRCommand(args);
+			}else if (command.equalsIgnoreCase("KILL")) {
+				response = KILLCommand(args);
+			}else if (command.equalsIgnoreCase("NAME")) {
+				response = NAMECommand(args);
 			}else {
 				response = "-Invalid Query";
 				//System.out.println("not done or user");
@@ -245,8 +249,27 @@ class SFTP_Server {
 		return response;
 	}
 
+	public String KILLCommand(String filespec){
+		if (loginStatus == 1){
+			File dir = new File(currentDirectory + "/" + filespec); 
+				if (dir.exists()){
+					if (dir.delete()){
+						response = "+" +  filespec + "deleted";
+					} else {
+						response = "-Not deleted, error unknown";
+					}
+				} else {
+					response = "-Not deleted because file does not exist";
+				}
+		} else {
+			response = "-Not deleted because user must be logged in to proceed";
+		}
+	return response;
+	}
 
-
+	public String NAMECommand(String old-file-spec){
+		return response;
+	}
 
 
 }
