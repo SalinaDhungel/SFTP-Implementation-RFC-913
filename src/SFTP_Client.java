@@ -60,12 +60,13 @@ class SFTP_Client {
                 //System.out.println("umm excuse you");
             }
 
-            while (!inFromServer.ready()) {
                 response = inFromServer.readLine();
                 System.out.println("the RESPONSE::::: " + response);
-            }
+
 
         }
+        inFromServer.close();
+
         //.out.println("client side says tataaaa");
         clientSocket.close();
     }

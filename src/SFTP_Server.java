@@ -12,6 +12,7 @@ class SFTP_Server {
 	private OutputStream outputStream;
 	private String response;
 	private LoginHandler loginHandler = new LoginHandler();
+	private int fileType = 1; // 0 = ASCII, 1 = Binary, 2 = Continuous
 
 
 	public SFTP_Server(int port) throws Exception
@@ -19,7 +20,8 @@ class SFTP_Server {
 		String clientInput;
 		String command;
 		String args;
-		boolean connectionOpen = true;
+
+		boolean connectionOpen= true;
 
 		//Open server socket for connection
 		ServerSocket welcomeSocket = new ServerSocket(port);
@@ -58,15 +60,18 @@ class SFTP_Server {
 				response = ACCTCommand(args);
 			}else if (command.equalsIgnoreCase("PASS")){
 				response = PASSCommand(args);
+			} else if (command.equalsIgnoreCase("TYPE")) {
+				response = TYPECommand(args);
 
 			} else {
 				//System.out.println("not done or user");
 			}
 
 			//SEND RESPONSE BACK TO SERVER
-			System.out.println("response from server:: "+ response + "\0");
-			outToClient.println(response + "\0");
-			System.out.println("hello!");
+		//	System.out.println("response from server:: "+ response + "\0");
+			System.out.println(response);
+
+			//System.out.println("hello!");
 
 		}
 		//System.out.println("goodbye from server side");
@@ -113,6 +118,25 @@ class SFTP_Server {
 			response = "-Wrong password, try again";
 		}
 		return response;
+	}
+
+	public String TYPECommand(String type_string) throws Exception {
+		System.out.println(type_string);
+		if (type_string.equalsIgnoreCase("A\0")){
+			fileType = 0;
+
+			response = "+Using Ascii mode";
+		} else if (type_string.equalsIgnoreCase("B\0")){
+			response = "+Using Binary mode";
+			fileType = 1;
+		} else if (type_string.equalsIgnoreCase("C\0")){
+			response = "+Using Continuous mode";
+			fileType = 2;
+		} else {
+			fileType = -1;
+			response = "-Type not valid";
+		}
+		return  response;
 	}
 } 
 
